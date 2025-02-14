@@ -11,15 +11,15 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-//  创建渲染器对象
+// 创建渲染器对象
 const renderer = new THREE.WebGLRenderer({
-  antialias: true, //  是否执行抗锯齿。默认值为false。
+  antialias: true, // 是否执行抗锯齿。默认值为false。
 });
 
 // 设置颜色及其透明度
 renderer.setClearColor(new THREE.Color("rgb(0,0,0)"));
 
-// 将输 canvas 的大小调整为 (width, height) 并考虑设备像素比，且将视口从 (0, 0) 开始调整到适合大小
+// 将输出 canvas 的大小调整为 (width, height) 并考虑设备像素比，且将视口从 (0, 0) 开始调整到适合大小
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
@@ -61,6 +61,57 @@ new THREE.OBJLoader().load(
     init();
     // 每一帧都会调用
     renderer.setAnimationLoop(render);
+
+    // 创建用于显示名字的Canvas
+    const nameCanvas = document.createElement('canvas');
+    nameCanvas.width = 256; // 你可以根据需要调整宽度和高度
+    nameCanvas.height = 50;
+    const nameContext = nameCanvas.getContext('2d');
+
+    // 设置背景透明
+    nameContext.clearRect(0, 0, nameCanvas.width, nameCanvas.height);
+
+    // 设置文本颜色
+    nameContext.fillStyle = '#FFA500'; // 文本颜色
+
+    // 设置字体样式和大小
+    nameContext.font = '24px Arial'; // 字体样式和大小
+
+    // 设置文本对齐方式
+    nameContext.textAlign = 'center';
+    nameContext.textBaseline = 'middle';
+
+    // 将名字绘制到Canvas上
+    nameContext.fillText('橙宝', nameCanvas.width / 2, nameCanvas.height / 2);
+
+    // 调试：在页面上显示Canvas以验证绘制内容
+    document.body.appendChild(nameCanvas);
+
+    // 将Canvas转换为纹理
+    const nameTexture = new THREE.CanvasTexture(nameCanvas);
+    nameTexture.needsUpdate = true;
+
+    // 创建材质并应用纹理
+    const nameMaterial = new THREE.MeshBasicMaterial({ map: nameTexture, transparent: true, side: THREE.DoubleSide });
+
+    // 创建用于显示名字的平面几何体，并设置其位置、旋转和缩放等属性
+    const nameGeometry = new THREE.PlaneGeometry(nameCanvas.width / 100, nameCanvas.height / 100); // 根据需要调整大小
+    const nameMesh = new THREE.Mesh(nameGeometry, nameMaterial);
+
+    // 设置位置
+    nameMesh.position.set(0, 0.1, 0); // 根据需要调整位置，确保名字位于心的中间
+
+    // 设置旋转
+    nameMesh.rotation.x = 0; // 将平面旋转到与心的平面相同
+
+    // 将名字网格添加到组中
+    group.add(nameMesh);
+
+    console.log('Heart loaded and name mesh added to scene');
+  },
+  undefined,
+  (error) => {
+    console.error('OBJLoader error:', error);
   }
 );
 
@@ -134,7 +185,6 @@ gsap
     ease: "power3.out",
   });
 
-// 0.22954521554974774 -0.22854083083283794
 const maxZ = 0.23;
 const rateZ = 0.5;
 
